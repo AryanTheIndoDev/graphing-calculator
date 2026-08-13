@@ -1,6 +1,11 @@
 import pygame as pg
 from pygame import Surface, Clock, Color
 
+from grid import Grid
+
+# Type Hint Declaration
+type Point = tuple[int, int]
+
 # Initializtion
 pg.init()
 
@@ -15,16 +20,29 @@ pg.display.set_icon(icon)
 
 # Appstate
 class AppState:
-    def __init__(self) -> None:
-        # Pygame stuff
-        self.width: int = 600
-        self.height: int = 400
+    INPUTWINDOWWIDTH: int = 200
 
-        self.screen: Surface = pg.display.set_mode((self.width, self.height), pg.RESIZABLE)
+    def __init__(self) -> None:
+        # Screen
+        self.minWidth: int = 400
+        self.minHeight: int = 0
+
+        startingWidth: int = 800
+        startingHeight: int = 600
+
+        self.screen: Surface = pg.display.set_mode((startingWidth, startingHeight), pg.RESIZABLE)
+
+        # Clock
         self.clock: Clock = Clock()
+
+        # Screen components
+        self.inputWindow: Surface = Surface((self.INPUTWINDOWWIDTH, self.screen.height), pg.SRCALPHA)
+        self.graphWindow: Surface = Surface((self.screen.width - self.INPUTWINDOWWIDTH, self.screen.height), pg.SRCALPHA)
 
         # UI
         self.bgColor: Color = Color(0, 0, 0)
+
+        self.grid: Grid = Grid(scale = 100)
 
         # Main loop vars
         self.running: bool = True
@@ -32,20 +50,50 @@ class AppState:
         self.fps: float = 60
         self.dt: float = 60 / 1000
 
+    @property
+    def width(self) -> int:
+        return self.screen.width
+
+    @property
+    def height(self) -> int:
+        return self.screen.height
+
     def update(self):
         ...
 
     def draw(self):
         self.screen.fill(self.bgColor)
 
+        self.screen.blit(self.inputWindow)
+        self.screen.blit(self.graphWindow, (self.INPUTWINDOWWIDTH, 0))
+
+        self.grid.draw(self.graphWindow)
+
+    def onResize(self, new_dimensions: Point):
+        newWidth, newHeight = new_dimensions
+
+        # clamping dimensions
+        width: int = int(pg.math.clamp(newWidth, self.minWidth, newWidth))
+        height: int = int(pg.math.clamp(newHeight, self.minHeight, newHeight))
+
+        # resizing screen
+        self.screen = pg.display.set_mode((width, height), pg.RESIZABLE)
+
+        # resizing screen components
+        self.inputWindow: Surface = Surface((self.INPUTWINDOWWIDTH, self.screen.height), pg.SRCALPHA)
+        self.graphWindow: Surface = Surface((self.screen.width - self.INPUTWINDOWWIDTH, self.screen.height), pg.SRCALPHA)
+
     def quit(self):
         self.running: bool = False
 
 app: AppState = AppState()
 
-# Main loop
+# main loop
 while app.running:
     for event in pg.event.get():
+        # resize
+        if event.type == pg.VIDEORESIZE:
+            app.onResize(event.size)
         # quit
         if event.type == pg.QUIT:
             app.quit()
