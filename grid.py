@@ -1,12 +1,12 @@
 import pygame as pg
-from pygame import Surface, Color, Font
+from pygame import Surface, Color, Font, Vector2
 
 # Grid
 class Grid:
-    def __init__(self, scale: float, zoom: float = 1) -> None:
+    def __init__(self, scale: float, pan: Vector2) -> None:
         # Scaling
         self.scale: float = scale
-        self.zoom: float = zoom
+        self.pan: Vector2 = pan
 
         # Colors
         self.axisColor: Color = Color(255, 255, 255, 255)
@@ -18,8 +18,11 @@ class Grid:
 
     def draw(self, screen: Surface):
         # Dimensions
-        width: int = screen.width
-        height: int = screen.height
+        width = screen.width
+        height = screen.height
+
+        centerWidth = (screen.width // 2) + self.pan.x
+        centerHeight = (screen.height // 2) + self.pan.y
 
         # Minor lines:-
         self.drawMinorLines(screen)
@@ -29,16 +32,16 @@ class Grid:
 
         # Axes:-
         # x-axis
-        pg.draw.line(screen, self.axisColor, (0, height // 2), (width, height // 2), 2)
+        pg.draw.line(screen, self.axisColor, (0, centerHeight), (width, centerHeight), 2)
         # y-axis
-        pg.draw.line(screen, self.axisColor, (width // 2, 0), (width // 2, height), 2)
+        pg.draw.line(screen, self.axisColor, (centerWidth, 0), (centerWidth, height), 2)
     
     def drawMajorLines(self, screen: Surface):
-        centerx = screen.width // 2
-        centery = screen.height // 2
+        centerx = screen.width // 2 + self.pan.x
+        centery = screen.height // 2 + self.pan.y
 
         # horizontal
-        for line in range(1, int((screen.height / 2) / self.scale) + 1):
+        for line in range(1, int(max(centery, screen.height - centery) / self.scale) + 1):
             y = line * self.scale
 
             # positive
@@ -54,7 +57,7 @@ class Grid:
             screen.blit(num, num.get_rect(center = (centerx - 10, centery + y)))
 
         # vertical
-        for line in range(1, int((screen.width / 2) / self.scale) + 1):
+        for line in range(1, int(max(centerx, screen.width - centerx) / self.scale) + 1):
             x = line * self.scale
 
             # positive
@@ -70,20 +73,26 @@ class Grid:
             screen.blit(num, num.get_rect(center = (centerx - x, centery + 10)))
 
     def drawMinorLines(self, screen: Surface):
-        centerx = screen.width // 2
-        centery = screen.height // 2
+        centerx = screen.width // 2 + self.pan.x
+        centery = screen.height // 2 + self.pan.y
 
         # horizontal
-        for line in range(1, int((screen.height / 2) / (self.scale / 5)) + 1):
+        for line in range(1, int(max(centery, screen.height - centery) / (self.scale / 5)) + 1):
             y = line * self.scale / 5
 
             pg.draw.line(screen, self.minorColor, (0, centery + y), (screen.width, centery + y))
             pg.draw.line(screen, self.minorColor, (0, centery - y), (screen.width, centery - y))
 
         # vertical
-        for line in range(1, int((screen.width / 2) / (self.scale / 5)) + 1):
+        for line in range(1, int(max(centerx, screen.width - centerx) / (self.scale / 5)) + 1):
             x = line * self.scale / 5
 
             pg.draw.line(screen, self.minorColor, (centerx + x, 0), (centerx + x, screen.height))
             pg.draw.line(screen, self.minorColor, (centerx - x, 0), (centerx - x, screen.height))
 
+    def zoom(self, scroll: int, intensity: int):
+        """ Scroll is like the direction
+        while the self.scale is scaled by
+        a percentage of itself."""
+
+        self.scale += scroll * (self.scale * intensity / 100)
