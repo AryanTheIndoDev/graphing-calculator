@@ -54,8 +54,7 @@ class AppState:
         # UI
         self.bgColor: Color = Color(0, 0, 0)
 
-        self.gridPan: Vector2 = Vector2()
-        self.grid: Grid = Grid(scale = 100, pan = self.gridPan)
+        self.grid: Grid = Grid(scale = 50)
 
         # Main loop vars
         self.running: bool = True
@@ -82,7 +81,7 @@ class AppState:
         # Panning
         if self.graphRect.collidepoint(self.mousePos):
             if self.mousePressed[0]:
-                self.gridPan += self.mouseMovement
+                self.grid.pan(self.mouseMovement)
 
         # Zooming
         self.grid.zoom(self.mouseScroll, self.ZOOMINTESITY)
@@ -110,6 +109,10 @@ class AppState:
         # resizing screen components
         self.inputWindow: Surface = Surface((self.INPUTWINDOWWIDTH, self.screen.height), pg.SRCALPHA)
         self.graphWindow: Surface = Surface((self.screen.width - self.INPUTWINDOWWIDTH, self.screen.height), pg.SRCALPHA)
+
+        # resizing component rects
+        self.inputRect: Rect = self.inputWindow.get_rect()
+        self.graphRect: Rect = self.graphWindow.get_rect(topleft = (self.INPUTWINDOWWIDTH, 0))
 
     def quit(self):
         self.running: bool = False
