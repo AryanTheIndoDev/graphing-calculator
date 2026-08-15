@@ -84,8 +84,9 @@ class AppState:
                 self.grid.pan(self.mouseMovement)
 
         # Zooming
-        self.grid.zoom(self.mouseScroll, self.ZOOMINTESITY)
-        self.mouseScroll = 0
+        if self.mouseScroll != 0:
+            self.grid.zoom(self.mouseScroll, self.ZOOMINTESITY, self.mousePos, self.screen)
+            self.mouseScroll = 0
 
     def draw(self):
         self.screen.fill(self.bgColor)
