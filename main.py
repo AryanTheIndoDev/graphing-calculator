@@ -78,15 +78,20 @@ class AppState:
         self.mouseJustPressed: tuple = pg.mouse.get_just_pressed()
         self.mousePressed: tuple = pg.mouse.get_pressed()
 
-        # Panning
+        # Grid Features
         if self.graphRect.collidepoint(self.mousePos):
+            # Panning
             if self.mousePressed[0]:
                 self.grid.pan(self.mouseMovement)
+                pg.mouse.set_cursor(pg.SYSTEM_CURSOR_HAND)
+            else:
+                pg.mouse.set_cursor(pg.SYSTEM_CURSOR_ARROW)
 
-        # Zooming
-        if self.mouseScroll != 0:
-            self.grid.zoom(self.mouseScroll, self.ZOOMINTESITY, self.mousePos, self.screen)
-            self.mouseScroll = 0
+            # Zooming
+            if self.mouseScroll != 0:
+                relMousePos = self.mousePos - Vector2(self.graphRect.topleft)
+                self.grid.zoom(self.mouseScroll, self.ZOOMINTESITY, relMousePos, self.graphWindow)
+                self.mouseScroll = 0
 
     def draw(self):
         self.screen.fill(self.bgColor)

@@ -56,11 +56,24 @@ class Grid:
         pg.draw.line(screen, self.axisColor, (centerWidth, 0), (centerWidth, height), 2)
 
     def zoom(self, scroll: int, intensity: int, mousePos: Vector2, screen: Surface):
+        """Calcalute the old mathematical coords of mouse,
+        calculate the new mathematical coords of the mouse,
+        add their difference to panning"""
+
+        origin = Vector2(screen.width // 2 + self.panning.x,
+                         screen.height // 2 + self.panning.y)
+
+        oldMathCoords = Vector2((mousePos.x - origin.x) / self.scale,
+                                (origin.y - mousePos.y) / self.scale)
+
         """ Scroll is like the direction
         while the self.scale is scaled by
         a percentage of itself."""
 
         self.scale += scroll * (self.scale * intensity / 100)
+
+        newMathCoords = Vector2((mousePos.x - origin.x) / self.scale,
+                                (origin.y - mousePos.y) / self.scale)
 
         # Increasing/Decreasing unit when displayScale gets uncomfortable
         if self.displayScale <= 80:
@@ -69,12 +82,9 @@ class Grid:
         if self.displayScale >= 160:
             self.cycleUnitLength(-1)
 
-        """Unfinished, Postponed to tomorrow"""
         # Panning screen towards mouse
-        # origin = Vector2((screen.width // 2) + self.panning.x,
-        #                  (screen.height // 2) + self.panning.y)
-
-        # self.panning += -scroll * (mousePos - origin) * intensity / 100
+        self.panning.x -= (oldMathCoords.x - newMathCoords.x) * self.scale
+        self.panning.y += (oldMathCoords.y - newMathCoords.y) * self.scale
 
     def pan(self, movement: Vector2):
         """ Panning the grid by the mouse
