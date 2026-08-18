@@ -1,7 +1,10 @@
 import pygame as pg
 from pygame import Surface, Clock, Color, Vector2, Rect
 
+import colors
+
 from grid import Grid
+from input import Input
 
 # Type Hint Declaration
 type Point = tuple[int, int]
@@ -43,6 +46,9 @@ class AppState:
         self.inputRect: Rect = self.inputWindow.get_rect()
         self.graphRect: Rect = self.graphWindow.get_rect(topleft = (self.INPUTWINDOWWIDTH, 0))
 
+        # Input
+        self.input: Input = Input(self.inputWindow)
+
         # Mouse
         self.mousePos: Vector2 = Vector2(pg.mouse.get_pos())
         self.mouseMovement: Vector2 = Vector2()
@@ -52,9 +58,12 @@ class AppState:
         self.mousePressed: tuple = pg.mouse.get_pressed()
 
         # UI
-        self.bgColor: Color = Color(0, 0, 0)
+        self.bgColor: Color = colors.Black
 
         self.grid: Grid = Grid(scale = 50)
+
+        # Event handling
+        self.events: list[pg.Event] = []
 
         # Main loop vars
         self.running: bool = True
@@ -70,7 +79,7 @@ class AppState:
     def height(self) -> int:
         return self.screen.height
 
-    def update(self):
+    def update(self) -> None:
         # Mouse
         self.mouseMovement: Vector2 = pg.mouse.get_pos() - self.mousePos
         self.mousePos: Vector2 = Vector2(pg.mouse.get_pos())
@@ -90,19 +99,33 @@ class AppState:
             # Zooming
             if self.mouseScroll != 0:
                 relMousePos = self.mousePos - Vector2(self.graphRect.topleft)
-                self.grid.zoom(self.mouseScroll, self.ZOOMINTESITY, relMousePos, self.graphWindow)
+                if pg.key.get_pressed()[pg.K_LCTRL]:
+                    zoom = self.ZOOMINTESITY * 5
+                else:
+                    zoom = self.ZOOMINTESITY
+
+                self.grid.zoom(self.mouseScroll, zoom, relMousePos, self.graphWindow)
                 self.mouseScroll = 0
 
-    def draw(self):
+        # Input Features
+        if self.mouseJustPressed[1]:
+            self.input.addBox()
+
+    def draw(self) -> None:
+        # Resetting surfaces
         self.screen.fill(self.bgColor)
         self.graphWindow.fill(self.bgColor)
+        self.inputWindow.fill(self.bgColor)
 
+        # Screen components
         self.grid.draw(self.graphWindow)
+        self.input.draw()
 
+        # Screen
         self.screen.blit(self.inputWindow, self.inputRect)
         self.screen.blit(self.graphWindow, self.graphRect)
 
-    def onResize(self, new_dimensions: Point):
+    def onResize(self, new_dimensions: Point) -> None:
         newWidth, newHeight = new_dimensions
 
         # clamping dimensions
@@ -120,14 +143,18 @@ class AppState:
         self.inputRect: Rect = self.inputWindow.get_rect()
         self.graphRect: Rect = self.graphWindow.get_rect(topleft = (self.INPUTWINDOWWIDTH, 0))
 
-    def quit(self):
+        # parts
+        self.input.onResize(self.inputWindow)
+
+    def quit(self) -> None:
         self.running: bool = False
 
 app: AppState = AppState()
 
 # main loop
 while app.running:
-    for event in pg.event.get():
+    app.events = pg.event.get()
+    for event in app.events:
         # mouse scroll
         if event.type == pg.MOUSEWHEEL:
             app.mouseScroll = event.y

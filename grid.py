@@ -1,6 +1,8 @@
 import pygame as pg
 from pygame import Surface, Color, Font, Vector2
 
+import colors
+
 # Type Declaration
 type Point = tuple[float, float]
 
@@ -20,9 +22,9 @@ class Grid:
         self.panning: Vector2 = Vector2()
 
         # Colors
-        self.axisColor: Color = Color(255, 255, 255, 255)
-        self.majorColor: Color = Color(200, 200, 200, 150)
-        self.minorColor: Color = Color(100, 100, 100, 50)
+        self.axisColor: Color = colors.White
+        self.majorColor: Color = colors.MajorAxisColor
+        self.minorColor: Color = colors.MinorAxisColor
 
         # Font
         self.font: Font = pg.font.SysFont("Cambria Math", 15)
@@ -35,7 +37,7 @@ class Grid:
     def displayScale(self) -> float:
         return self.scale * self.unit
 
-    def draw(self, screen: Surface):
+    def draw(self, screen: Surface) -> None:
         # Dimensions
         width = screen.width
         height = screen.height
@@ -55,7 +57,7 @@ class Grid:
         # y-axis
         pg.draw.line(screen, self.axisColor, (centerWidth, 0), (centerWidth, height), 2)
 
-    def zoom(self, scroll: int, intensity: int, mousePos: Vector2, screen: Surface):
+    def zoom(self, scroll: int, intensity: int, mousePos: Vector2, screen: Surface) -> None:
         """Calcalute the old mathematical coords of mouse,
         calculate the new mathematical coords of the mouse,
         add their difference to panning"""
@@ -86,7 +88,7 @@ class Grid:
         self.panning.x -= (oldMathCoords.x - newMathCoords.x) * self.scale
         self.panning.y += (oldMathCoords.y - newMathCoords.y) * self.scale
 
-    def pan(self, movement: Vector2):
+    def pan(self, movement: Vector2) -> None:
         """ Panning the grid by the mouse
         movement vector."""
 
@@ -94,7 +96,7 @@ class Grid:
 
     # Helper Functions
     
-    def drawMajorLines(self, screen: Surface):
+    def drawMajorLines(self, screen: Surface) -> None:
         centerx = screen.width // 2 + self.panning.x
         centery = screen.height // 2 + self.panning.y
 
@@ -126,7 +128,7 @@ class Grid:
             # number
             self.drawNum(-line * self.unit, (centerx - x, centery + 10), screen)
 
-    def drawMinorLines(self, screen: Surface):
+    def drawMinorLines(self, screen: Surface) -> None:
         centerx = screen.width // 2 + self.panning.x
         centery = screen.height // 2 + self.panning.y
 
@@ -144,7 +146,7 @@ class Grid:
             pg.draw.line(screen, self.minorColor, (centerx + x, 0), (centerx + x, screen.height))
             pg.draw.line(screen, self.minorColor, (centerx - x, 0), (centerx - x, screen.height))
 
-    def cycleUnitLength(self, direction: int):
+    def cycleUnitLength(self, direction: int) -> None:
         lengths: list = [1, 2, 5]
 
         current: int =  lengths.index(self.unitLength)
@@ -160,7 +162,7 @@ class Grid:
 
         self.unitLength = lengths[new]
 
-    def drawNum(self, num: float, pos: Point, screen: Surface):
+    def drawNum(self, num: float, pos: Point, screen: Surface) -> None:
         number = round(num, len(str(self.unit)))
         surf = self.font.render(f"{number}", True, self.axisColor)
         screen.blit(surf, surf.get_rect(center = pos))
