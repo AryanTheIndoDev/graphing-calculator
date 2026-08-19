@@ -1,6 +1,9 @@
 import pygame as pg
 from pygame import Rect, Surface, Color, Font
 
+import colors
+import constants as c
+
 # Type Declaration
 type Point = tuple[int, int]
 
@@ -17,7 +20,15 @@ class InputBox:
 
         self.rect: Rect = self.surf.get_rect()
 
+        # functions
+        self.backspaceMode: bool = False
+        self.backspaceTime: float = 0
+
     def draw(self, screen: Surface, pos: Point) -> None:
+
+        # resetting self surface
+        self.surf.fill(colors.Green1)
+
         # position
         self.rect.topleft = pos
 
@@ -32,5 +43,36 @@ class InputBox:
         screen.blit(self.surf, self.rect)
 
         
-    def getText(self, text: str) -> None:
-        self.text += text
+    def handleEvent(self, keyPresses: pg.key.ScancodeWrapper, events: list[pg.Event], dt: float) -> None:
+
+        # Text Input
+        for event in events:
+            if event.type == pg.TEXTINPUT:
+                self.text += event.text
+
+        # Backspace
+        self.handleBackspace(keyPresses, dt)
+
+    # Helper Functions
+    def handleBackspace(self, keyPresses: pg.key.ScancodeWrapper, dt: float):
+        if keyPresses[pg.K_BACKSPACE]:
+            # initial back
+            if not self.backspaceMode and self.backspaceTime == 0:
+                self.text = self.text[0:-1]
+            # in between timer
+            elif not self.backspaceMode and self.backspaceTime >= c.BACKSPACESTARTTIMER:
+                self.text = self.text[0:-1]
+                self.backspaceMode = True
+                self.backspaceTime -= c.BACKSPACESTARTTIMER
+            # backspace mode go brrrr
+            elif self.backspaceMode and self.backspaceTime >= c.BACKSPACEBETWEENTIMER:
+                self.text = self.text[0:-1]
+                self.backspaceTime -= c.BACKSPACEBETWEENTIMER
+            # timer increment
+            self.backspaceTime += dt
+
+        else:
+            # resetting backspace
+            self.backspaceTime = 0
+            self.backspaceMode = False
+            

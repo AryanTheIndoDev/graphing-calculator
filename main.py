@@ -2,6 +2,7 @@ import pygame as pg
 from pygame import Surface, Clock, Color, Vector2, Rect
 
 import colors
+import constants as c
 
 from grid import Grid
 from input import Input
@@ -13,7 +14,7 @@ type Point = tuple[int, int]
 pg.init()
 
 # Titling
-pg.display.set_caption("Graphing Calculator")
+pg.display.set_caption("Graphity")
 
 # Iconing
 font = pg.font.SysFont("Segoe UI Emoji", 20)
@@ -23,13 +24,10 @@ pg.display.set_icon(icon)
 
 # Appstate
 class AppState:
-    INPUTWINDOWWIDTH: int = 200
-    ZOOMINTESITY: int = 5
-
     def __init__(self) -> None:
         # Screen
-        self.minWidth: int = 400
-        self.minHeight: int = 0
+        self.minWidth: int = 500
+        self.minHeight: int = 200
 
         startingWidth: int = 800
         startingHeight: int = 600
@@ -40,11 +38,11 @@ class AppState:
         self.clock: Clock = Clock()
 
         # Screen components
-        self.inputWindow: Surface = Surface((self.INPUTWINDOWWIDTH, self.screen.height), pg.SRCALPHA)
-        self.graphWindow: Surface = Surface((self.screen.width - self.INPUTWINDOWWIDTH, self.screen.height), pg.SRCALPHA)
+        self.inputWindow: Surface = Surface((c.INPUTWINDOWWIDTH, self.screen.height), pg.SRCALPHA)
+        self.graphWindow: Surface = Surface((self.screen.width - c.INPUTWINDOWWIDTH, self.screen.height), pg.SRCALPHA)
 
         self.inputRect: Rect = self.inputWindow.get_rect()
-        self.graphRect: Rect = self.graphWindow.get_rect(topleft = (self.INPUTWINDOWWIDTH, 0))
+        self.graphRect: Rect = self.graphWindow.get_rect(topleft = (c.INPUTWINDOWWIDTH, 0))
 
         # Input
         self.input: Input = Input(self.inputWindow)
@@ -56,6 +54,9 @@ class AppState:
         
         self.mouseJustPressed: tuple = pg.mouse.get_just_pressed()
         self.mousePressed: tuple = pg.mouse.get_pressed()
+
+        # Keyboard
+        self.keyPressed: pg.key.ScancodeWrapper = pg.key.get_pressed()
 
         # UI
         self.bgColor: Color = colors.Black
@@ -69,7 +70,7 @@ class AppState:
         self.running: bool = True
 
         self.fps: float = 60
-        self.dt: float = 60 / 1000
+        self.dt: float = 0
 
     @property
     def width(self) -> int:
@@ -87,6 +88,9 @@ class AppState:
         self.mouseJustPressed: tuple = pg.mouse.get_just_pressed()
         self.mousePressed: tuple = pg.mouse.get_pressed()
 
+        # Keyboard
+        self.keyPressed: pg.key.ScancodeWrapper = pg.key.get_pressed()
+
         # Grid Features
         if self.graphRect.collidepoint(self.mousePos):
             # Panning
@@ -100,9 +104,9 @@ class AppState:
             if self.mouseScroll != 0:
                 relMousePos = self.mousePos - Vector2(self.graphRect.topleft)
                 if pg.key.get_pressed()[pg.K_LCTRL]:
-                    zoom = self.ZOOMINTESITY * 5
+                    zoom = c.ZOOMINTESITY * 5
                 else:
-                    zoom = self.ZOOMINTESITY
+                    zoom = c.ZOOMINTESITY
 
                 self.grid.zoom(self.mouseScroll, zoom, relMousePos, self.graphWindow)
                 self.mouseScroll = 0
@@ -110,6 +114,8 @@ class AppState:
         # Input Features
         if self.mouseJustPressed[1]:
             self.input.addBox()
+
+        self.input.update(self.keyPressed, self.events, self.dt)
 
     def draw(self) -> None:
         # Resetting surfaces
@@ -136,12 +142,12 @@ class AppState:
         self.screen = pg.display.set_mode((width, height), pg.RESIZABLE)
 
         # resizing screen components
-        self.inputWindow: Surface = Surface((self.INPUTWINDOWWIDTH, self.screen.height), pg.SRCALPHA)
-        self.graphWindow: Surface = Surface((self.screen.width - self.INPUTWINDOWWIDTH, self.screen.height), pg.SRCALPHA)
+        self.inputWindow: Surface = Surface((c.INPUTWINDOWWIDTH, self.screen.height), pg.SRCALPHA)
+        self.graphWindow: Surface = Surface((self.screen.width - c.INPUTWINDOWWIDTH, self.screen.height), pg.SRCALPHA)
 
         # resizing component rects
         self.inputRect: Rect = self.inputWindow.get_rect()
-        self.graphRect: Rect = self.graphWindow.get_rect(topleft = (self.INPUTWINDOWWIDTH, 0))
+        self.graphRect: Rect = self.graphWindow.get_rect(topleft = (c.INPUTWINDOWWIDTH, 0))
 
         # parts
         self.input.onResize(self.inputWindow)

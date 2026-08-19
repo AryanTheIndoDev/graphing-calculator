@@ -1,6 +1,8 @@
 import pygame as pg
 from pygame import Color, Surface
 
+import constants as c
+
 """Helper Functions"""
 
 def createGradient(orientation: tuple[int, int], dimensions: tuple[int, int], *colors: Color) -> Surface:
@@ -33,4 +35,4 @@ MinorAxisColor = Color(100, 100, 100, 50)
 
 """Gradients"""
 
-InputHeaderGradient = createGradient((2, 2), (200, 80), Grey2, Grey1, Grey1, Black)
+InputHeaderGradient = createGradient((2, 2), (c.INPUTWINDOWWIDTH, c.HEADERHEIGHT), Grey2, Grey1, Grey1, Black)

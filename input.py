@@ -2,13 +2,12 @@ import pygame as pg
 from pygame import Surface, Color, Rect, Font
 
 import colors
+import constants as c
 
 from inputBox import InputBox
 
 # Input
 class Input:
-    BOXHEIGHT: int = 100
-    HEADERHEIGHT: int = 80
     def __init__(self, screen: Surface) -> None:
         # Screen
         self.screen: Surface = screen
@@ -19,11 +18,11 @@ class Input:
         self.headerFont: Font = pg.font.SysFont("Corbel", 40, bold = True)
 
         # Screen Components
-        self.headerWindow: Surface = Surface((self.screen.width, self.HEADERHEIGHT))
-        self.boxWindow: Surface = Surface((self.screen.width, self.screen.height - self.HEADERHEIGHT))
+        self.headerWindow: Surface = Surface((self.screen.width, c.HEADERHEIGHT))
+        self.boxWindow: Surface = Surface((self.screen.width, self.screen.height - c.HEADERHEIGHT))
 
         self.headerRect: Rect = self.headerWindow.get_rect()
-        self.boxRect: Rect = self.boxWindow.get_rect(topleft = (0, self.HEADERHEIGHT))
+        self.boxRect: Rect = self.boxWindow.get_rect(topleft = (0, c.HEADERHEIGHT))
 
         # Scroll
         self.scroll: int = 0
@@ -41,13 +40,19 @@ class Input:
 
         # boxes
         for index, box in enumerate(self.boxes):
-            box.draw(self.boxWindow, (0, index * self.BOXHEIGHT))
+            box.draw(self.boxWindow, (0, index * c.BOXHEIGHT))
+
+        self.screen.blit(self.boxWindow, self.boxRect)
 
         # divider
-        pg.draw.line(self.screen, colors.Grey3, (0, self.HEADERHEIGHT), (self.screen.width, self.HEADERHEIGHT))
+        pg.draw.line(self.screen, colors.Grey3, (0, c.HEADERHEIGHT), (self.screen.width, c.HEADERHEIGHT))
+
+    def update(self, keyPresses: pg.key.ScancodeWrapper, events: list[pg.Event], dt: float) -> None:
+        for box in self.boxes:
+            box.handleEvent(keyPresses, events, dt)
 
     def addBox(self) -> None:
-        box = InputBox((self.screen.width, self.BOXHEIGHT), self.font)
+        box = InputBox((self.screen.width, c.BOXHEIGHT), self.font)
         self.boxes.append(box)
 
     def onResize(self, screen: Surface):
@@ -55,8 +60,8 @@ class Input:
         self.screen = screen
 
         # updating screen components
-        self.headerWindow: Surface = Surface((self.screen.width, self.HEADERHEIGHT))
-        self.boxWindow: Surface = Surface((self.screen.width, self.screen.height - self.HEADERHEIGHT))
+        self.headerWindow: Surface = Surface((self.screen.width, c.HEADERHEIGHT))
+        self.boxWindow: Surface = Surface((self.screen.width, self.screen.height - c.HEADERHEIGHT))
 
         self.headerRect: Rect = self.headerWindow.get_rect()
-        self.boxRect: Rect = self.boxWindow.get_rect(topleft = (0, self.HEADERHEIGHT))
+        self.boxRect: Rect = self.boxWindow.get_rect(topleft = (0, c.HEADERHEIGHT))
