@@ -1,5 +1,6 @@
 import pygame as pg
 from pygame import Surface, Color, Font, Vector2
+from typing import Callable
 
 import colors
 
@@ -20,11 +21,15 @@ class Grid:
         self.unitLength: float = 2
         self.unitLengthMultiplier: int = 0
 
+        # Screen
+        self.width: int = 0
+        self.height: int = 0
+
         # Panning
         self.panning: Vector2 = Vector2()
 
         # Graphs
-        self.graphs: list[Graph] = []
+        self.graphs: dict[Callable, Graph] = {}
 
         # Colors
         self.axisColor: Color = colors.White
@@ -44,11 +49,10 @@ class Grid:
 
     def draw(self, screen: Surface) -> None:
         # Dimensions
-        width = screen.width
-        height = screen.height
+        self.width = screen.width
+        self.height = screen.height
 
-        centerWidth = (screen.width // 2) + self.panning.x
-        centerHeight = (screen.height // 2) + self.panning.y
+        self.origin = Vector2((screen.width // 2) + self.panning.x, (screen.height // 2) + self.panning.y)
 
         # Minor lines:-
         self.drawMinorLines(screen)
@@ -58,20 +62,38 @@ class Grid:
 
         # Axes:-
         # x-axis
-        pg.draw.line(screen, self.axisColor, (0, centerHeight), (width, centerHeight), 2)
+        pg.draw.line(screen, self.axisColor, (0, self.origin.y), (self.width, self.origin.y), 2)
         # y-axis
-        pg.draw.line(screen, self.axisColor, (centerWidth, 0), (centerWidth, height), 2)
+        pg.draw.line(screen, self.axisColor, (self.origin.x, 0), (self.origin.x, self.height), 2)
+
+        # Graphs:-
+        for function in self.graphs:
+            graph = self.graphs[function]
+            sortedPoints = sorted(graph.points.items())
+            xpoints = list(p[0] for p in sortedPoints)
+            ypoints = list(p[1] for p in sortedPoints)
+            for i in range(0, len(graph.points) - 2):
+                x1 = xpoints[i]
+                y1 = ypoints[i]
+                x2 = xpoints[i + 1]
+                y2 = ypoints[i + 1]
+
+                pos1 = (self.origin.x + x1 * self.scale, self.origin.y - y1 * self.scale)
+                pos2 = (self.origin.x + x2 * self.scale, self.origin.y - y2 * self.scale)
+
+                pg.draw.line(screen, colors.Green3, pos1, pos2, 3)
+
 
     def zoom(self, scroll: int, intensity: int, mousePos: Vector2, screen: Surface) -> None:
         """Calcalute the old mathematical coords of mouse,
         calculate the new mathematical coords of the mouse,
         add their difference to panning"""
 
-        origin = Vector2(screen.width // 2 + self.panning.x,
+        self.origin = Vector2(screen.width // 2 + self.panning.x,
                          screen.height // 2 + self.panning.y)
 
-        oldMathCoords = Vector2((mousePos.x - origin.x) / self.scale,
-                                (origin.y - mousePos.y) / self.scale)
+        oldMathCoords = Vector2((mousePos.x - self.origin.x) / self.scale,
+                                (self.origin.y - mousePos.y) / self.scale)
 
         """ Scroll is like the direction
         while the self.scale is scaled by
@@ -79,8 +101,8 @@ class Grid:
 
         self.scale += scroll * (self.scale * intensity / 100)
 
-        newMathCoords = Vector2((mousePos.x - origin.x) / self.scale,
-                                (origin.y - mousePos.y) / self.scale)
+        newMathCoords = Vector2((mousePos.x - self.origin.x) / self.scale,
+                                (self.origin.y - mousePos.y) / self.scale)
 
         # Increasing/Decreasing unit when displayScale gets uncomfortable
         if self.displayScale <= 80:
@@ -98,6 +120,25 @@ class Grid:
         movement vector."""
 
         self.panning += movement
+
+        self.origin = Vector2(self.width // 2 + self.panning.x,
+                         self.height // 2 + self.panning.y)
+
+        startx = -self.origin.x / self.scale
+        endx = (self.width - self.origin.x) / self.scale
+
+        for function in self.graphs:
+            self.graphs[function].update(startx, endx, 10 ** (self.unitLengthMultiplier - 2))
+
+    def addFunction(self, function: Callable):
+        if function not in self.graphs:
+
+            startx = -self.origin.x / self.scale
+            endx = (self.width - self.origin.x) / self.scale
+            graph = Graph(function)
+            graph.generate(startx, endx, 10 ** (self.unitLengthMultiplier - 2))
+
+            self.graphs[function] = graph
 
     # Helper Functions
     

@@ -23,11 +23,15 @@ class InputBox:
 
         self.rect: Rect = self.surf.get_rect()
 
-        # functions
+        # mechanics
         self.backspaceMode: bool = False
         self.backspaceTime: float = 0
 
         self.cursor: int = 0
+
+        # functions
+        self._lastparsedtext = None
+        self._cachedFunc = lambda: None
 
     def draw(self, screen: Surface, pos: Point) -> None:
 
@@ -58,7 +62,11 @@ class InputBox:
         self.handleBackspace(keyPresses, dt)
 
     def getEquation(self) -> Callable:
-        return parseEquation(self.text, "x", "y")
+        if self.text != self._lastparsedtext:
+            self._lastparsedtext = self.text
+            self._cachedFunc = parseEquation(self.text.replace(" ", ""), "x", "y")
+
+        return self._cachedFunc
 
     # Helper Functions
     def handleBackspace(self, keyPresses: pg.key.ScancodeWrapper, dt: float):

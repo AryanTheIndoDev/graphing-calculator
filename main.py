@@ -113,6 +113,15 @@ class AppState:
 
         self.input.update(self.keyPressed, self.events, self.dt)
 
+        # Plotting
+        for function in self.input.functions:
+            if function not in list(self.grid.graphs.keys()):
+                self.grid.addFunction(function)
+
+        for function in list(self.grid.graphs.keys()):
+            if function not in self.input.functions:
+                self.grid.graphs.pop(function)
+
         # Reset states
         self.mouseScroll = 0
         

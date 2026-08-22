@@ -5,7 +5,6 @@ import colors
 import constants as c
 
 from inputBox import InputBox
-from parser import parseEquation
 
 # Input
 class Input:
