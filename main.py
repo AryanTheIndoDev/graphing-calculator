@@ -29,10 +29,7 @@ class AppState:
         self.minWidth: int = 500
         self.minHeight: int = 200
 
-        startingWidth: int = 800
-        startingHeight: int = 600
-
-        self.screen: Surface = pg.display.set_mode((startingWidth, startingHeight), pg.RESIZABLE)
+        self.screen: Surface = pg.display.set_mode((c.STARTINGWIDTH, c.STARTINGHEIGHT), pg.RESIZABLE)
 
         # Clock
         self.clock: Clock = Clock()
@@ -104,12 +101,11 @@ class AppState:
             if self.mouseScroll != 0:
                 relMousePos = self.mousePos - Vector2(self.graphRect.topleft)
                 if pg.key.get_pressed()[pg.K_LCTRL]:
-                    zoom = c.ZOOMINTESITY * 5
+                    zoom = c.ZOOMINTENSITY * 5
                 else:
-                    zoom = c.ZOOMINTESITY
+                    zoom = c.ZOOMINTENSITY
 
                 self.grid.zoom(self.mouseScroll, zoom, relMousePos, self.graphWindow)
-                self.mouseScroll = 0
 
         # Input Features
         if self.mouseJustPressed[1]:
@@ -117,6 +113,9 @@ class AppState:
 
         self.input.update(self.keyPressed, self.events, self.dt)
 
+        # Reset states
+        self.mouseScroll = 0
+        
     def draw(self) -> None:
         # Resetting surfaces
         self.screen.fill(self.bgColor)

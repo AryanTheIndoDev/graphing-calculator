@@ -1,10 +1,11 @@
 import pygame as pg
-from pygame import Surface, Color, Rect, Font
+from pygame import Surface, Rect, Font
 
 import colors
 import constants as c
 
 from inputBox import InputBox
+from parser import parseEquation
 
 # Input
 class Input:
@@ -16,6 +17,8 @@ class Input:
         self.boxes: list[InputBox] = []
         self.font: Font = pg.font.SysFont("Cambria Math", 20)
         self.headerFont: Font = pg.font.SysFont("Corbel", 40, bold = True)
+
+        self.functions: list = []
 
         # Screen Components
         self.headerWindow: Surface = Surface((self.screen.width, c.HEADERHEIGHT))
@@ -30,7 +33,7 @@ class Input:
     def draw(self) -> None:
         # Resetting components
         self.headerWindow.blit(colors.InputHeaderGradient)
-        self.boxWindow.fill(colors.Black)
+        self.boxWindow.blit(colors.InputBoxWindowGradient)
 
         # header
         header = self.headerFont.render("graphity", True, colors.Green1)
@@ -44,12 +47,24 @@ class Input:
 
         self.screen.blit(self.boxWindow, self.boxRect)
 
-        # divider
-        pg.draw.line(self.screen, colors.Grey3, (0, c.HEADERHEIGHT), (self.screen.width, c.HEADERHEIGHT))
+        # dividers
+        # auxiliary
+        pg.draw.line(self.screen, colors.Grey2, (0, c.HEADERHEIGHT), (self.screen.width, c.HEADERHEIGHT), 2)
+        # main
+        pg.draw.line(self.screen, colors.Grey5, (self.screen.width, 0), (self.screen.width, self.screen.height), 6)
 
     def update(self, keyPresses: pg.key.ScancodeWrapper, events: list[pg.Event], dt: float) -> None:
+        functions: list = []
+
         for box in self.boxes:
+            # handle inputs
             box.handleEvent(keyPresses, events, dt)
+
+            # handle outputs
+            function = box.getEquation()
+            functions.append(function)
+
+        self.functions = functions.copy()
 
     def addBox(self) -> None:
         box = InputBox((self.screen.width, c.BOXHEIGHT), self.font)
@@ -65,3 +80,6 @@ class Input:
 
         self.headerRect: Rect = self.headerWindow.get_rect()
         self.boxRect: Rect = self.boxWindow.get_rect(topleft = (0, c.HEADERHEIGHT))
+
+        # update gradients
+        colors.InputBoxWindowGradient = colors.createGradient((1, 2), self.boxWindow.size, colors.Grey1, colors.Black)

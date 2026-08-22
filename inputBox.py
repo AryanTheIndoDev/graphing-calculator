@@ -1,8 +1,11 @@
 import pygame as pg
 from pygame import Rect, Surface, Color, Font
+from typing import Callable
 
 import colors
 import constants as c
+
+from parser import parseEquation
 
 # Type Declaration
 type Point = tuple[int, int]
@@ -11,7 +14,7 @@ type Point = tuple[int, int]
 class InputBox:
     def __init__(self, dimensions: Point, font: Font) -> None:
         # text
-        self.text: str = "y = x"
+        self.text: str = ""
         self.font: Font = font
         self.color: Color = Color(200, 200, 200)
 
@@ -23,6 +26,8 @@ class InputBox:
         # functions
         self.backspaceMode: bool = False
         self.backspaceTime: float = 0
+
+        self.cursor: int = 0
 
     def draw(self, screen: Surface, pos: Point) -> None:
 
@@ -42,7 +47,6 @@ class InputBox:
 
         screen.blit(self.surf, self.rect)
 
-        
     def handleEvent(self, keyPresses: pg.key.ScancodeWrapper, events: list[pg.Event], dt: float) -> None:
 
         # Text Input
@@ -52,6 +56,9 @@ class InputBox:
 
         # Backspace
         self.handleBackspace(keyPresses, dt)
+
+    def getEquation(self) -> Callable:
+        return parseEquation(self.text, "x", "y")
 
     # Helper Functions
     def handleBackspace(self, keyPresses: pg.key.ScancodeWrapper, dt: float):

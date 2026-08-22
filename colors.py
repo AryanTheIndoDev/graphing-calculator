@@ -25,7 +25,16 @@ Grey1 = Color(10, 10, 10, 255)
 Grey2 = Color(30, 30, 30, 255)
 Grey3 = Color(50, 50, 50, 255)
 Grey4 = Color(70, 70, 70, 255)
-Green1 = Color(40, 96, 77)
+Grey5 = Color(90, 90, 90, 255)
+Grey6 = Color(110, 110, 110, 255)
+Grey7 = Color(130, 130, 130, 255)
+Grey8 = Color(150, 150, 150, 255)
+Grey9 = Color(170, 170, 170, 255)
+
+Green1 = Color(40, 96, 77, 255)
+Green2 = Color(55, 124, 65, 255)
+Green3 = Color(0, 182, 63, 255)
+Green4 = Color(0, 209, 72, 255)
 
 """Exclusive Colors"""
 
@@ -35,4 +44,5 @@ MinorAxisColor = Color(100, 100, 100, 50)
 
 """Gradients"""
 
-InputHeaderGradient = createGradient((2, 2), (c.INPUTWINDOWWIDTH, c.HEADERHEIGHT), Grey2, Grey1, Grey1, Black)
+InputHeaderGradient = createGradient((2, 2), (c.INPUTWINDOWWIDTH, c.HEADERHEIGHT), Grey3, Grey2, Grey1, Black)
+InputBoxWindowGradient = createGradient((1, 2), (c.INPUTWINDOWWIDTH, c.STARTINGHEIGHT - c.HEADERHEIGHT), Grey1, Black)

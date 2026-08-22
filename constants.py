@@ -1,6 +1,9 @@
 """main.py"""
+STARTINGWIDTH: int = 800
+STARTINGHEIGHT: int = 600
+
 INPUTWINDOWWIDTH: int = 300
-ZOOMINTESITY: int = 5
+ZOOMINTENSITY: int = 5
 
 """input.py"""
 BOXHEIGHT: int = 100

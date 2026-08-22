@@ -3,6 +3,8 @@ from pygame import Surface, Color, Font, Vector2
 
 import colors
 
+from graph import Graph
+
 # Type Declaration
 type Point = tuple[float, float]
 
@@ -20,6 +22,9 @@ class Grid:
 
         # Panning
         self.panning: Vector2 = Vector2()
+
+        # Graphs
+        self.graphs: list[Graph] = []
 
         # Colors
         self.axisColor: Color = colors.White
