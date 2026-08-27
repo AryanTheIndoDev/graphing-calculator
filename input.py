@@ -1,5 +1,6 @@
 import pygame as pg
-from pygame import Surface, Rect, Font
+from pygame import Surface, Rect, Font, Vector2
+from typing import Callable
 
 import colors
 import constants as c
@@ -14,10 +15,11 @@ class Input:
 
         # Boxes
         self.boxes: list[InputBox] = []
+        self.focused: int | None = None
         self.font: Font = pg.font.SysFont("Cambria Math", 20)
         self.headerFont: Font = pg.font.SysFont("Corbel", 40, bold = True)
 
-        self.functions: list = []
+        self.functions: list[tuple[tuple, Callable]] = []
 
         # Screen Components
         self.headerWindow: Surface = Surface((self.screen.width, c.HEADERHEIGHT))
@@ -32,7 +34,7 @@ class Input:
     def draw(self) -> None:
         # Resetting components
         self.headerWindow.blit(colors.InputHeaderGradient)
-        self.boxWindow.blit(colors.InputBoxWindowGradient)
+        self.boxWindow.fill(colors.Black)
 
         # header
         header = self.headerFont.render("graphity", True, colors.Green1)
@@ -42,7 +44,7 @@ class Input:
 
         # boxes
         for index, box in enumerate(self.boxes):
-            box.draw(self.boxWindow, (0, index * c.BOXHEIGHT))
+            box.draw(self.boxWindow, (0, index * c.BOXHEIGHT), (self.screen.width, c.BOXHEIGHT))
 
         self.screen.blit(self.boxWindow, self.boxRect)
 
@@ -50,14 +52,26 @@ class Input:
         # auxiliary
         pg.draw.line(self.screen, colors.Grey2, (0, c.HEADERHEIGHT), (self.screen.width, c.HEADERHEIGHT), 2)
         # main
+        pg.draw.line(self.screen, colors.Grey5, (0, 0), (0, self.screen.height), 3)
         pg.draw.line(self.screen, colors.Grey5, (self.screen.width, 0), (self.screen.width, self.screen.height), 6)
 
-    def update(self, keyPresses: pg.key.ScancodeWrapper, events: list[pg.Event], dt: float) -> None:
+    def update(self, keyPresses: pg.key.ScancodeWrapper, events: list[pg.Event], mousePos: Vector2, dt: float) -> None:
         functions: list = []
 
+        # handle focusing
+        for event in events:
+            if event.type == pg.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    for box in self.boxes:
+                        if box.isColliding(mousePos - Vector2(0, c.HEADERHEIGHT)):
+                            box.focusOn()
+                        else:
+                            box.focusOff()
+
+        # handle inputs
         for box in self.boxes:
-            # handle inputs
-            box.handleEvent(keyPresses, events, dt)
+            if box.focused:
+                box.handleEvent(keyPresses, events, dt)
 
             # handle outputs
             function = box.getEquation()
@@ -66,7 +80,7 @@ class Input:
         self.functions = functions.copy()
 
     def addBox(self) -> None:
-        box = InputBox((self.screen.width, c.BOXHEIGHT), self.font)
+        box = InputBox(self.font)
         self.boxes.append(box)
 
     def onResize(self, screen: Surface):

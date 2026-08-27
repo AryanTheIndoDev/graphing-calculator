@@ -29,7 +29,7 @@ class Grid:
         self.panning: Vector2 = Vector2()
 
         # Graphs
-        self.graphs: dict[Callable, Graph] = {}
+        self.graphs: dict[tuple, Graph] = {}
 
         # Colors
         self.axisColor: Color = colors.White
@@ -67,23 +67,15 @@ class Grid:
         pg.draw.line(screen, self.axisColor, (self.origin.x, 0), (self.origin.x, self.height), 2)
 
         # Graphs:-
-        for function in self.graphs:
+        for function in self.graphs.keys():
             graph = self.graphs[function]
-            sortedPoints = sorted(graph.points.items())
-            xpoints = list(p[0] for p in sortedPoints)
-            ypoints = list(p[1] for p in sortedPoints)
-            for i in range(0, len(graph.points) - 2):
-                x1 = xpoints[i]
-                y1 = ypoints[i]
-                x2 = xpoints[i + 1]
-                y2 = ypoints[i + 1]
+            if graph.plotable:
+                sortedPoints = graph.getSortedPoints()
 
-                pos1 = (self.origin.x + x1 * self.scale, self.origin.y - y1 * self.scale)
-                pos2 = (self.origin.x + x2 * self.scale, self.origin.y - y2 * self.scale)
-
-                pg.draw.line(screen, colors.Green3, pos1, pos2, 3)
-
-
+                points = [(self.origin.x + x * self.scale, self.origin.y - y * self.scale) for x, y in sortedPoints]
+                
+                pg.draw.lines(screen, colors.Green3, False, points, 3)
+    
     def zoom(self, scroll: int, intensity: int, mousePos: Vector2, screen: Surface) -> None:
         """Calcalute the old mathematical coords of mouse,
         calculate the new mathematical coords of the mouse,
@@ -105,40 +97,40 @@ class Grid:
                                 (self.origin.y - mousePos.y) / self.scale)
 
         # Increasing/Decreasing unit when displayScale gets uncomfortable
-        if self.displayScale <= 80:
-            self.cycleUnitLength(1)
-
-        if self.displayScale >= 160:
-            self.cycleUnitLength(-1)
+        self.changeResolution()
 
         # Panning screen towards mouse
         self.panning.x -= (oldMathCoords.x - newMathCoords.x) * self.scale
         self.panning.y += (oldMathCoords.y - newMathCoords.y) * self.scale
+
+        # Updating graphs
+        self.updateGraphs()
 
     def pan(self, movement: Vector2) -> None:
         """ Panning the grid by the mouse
         movement vector."""
 
         self.panning += movement
-
-        self.origin = Vector2(self.width // 2 + self.panning.x,
-                         self.height // 2 + self.panning.y)
-
-        startx = -self.origin.x / self.scale
-        endx = (self.width - self.origin.x) / self.scale
-
-        for function in self.graphs:
-            self.graphs[function].update(startx, endx, 10 ** (self.unitLengthMultiplier - 2))
-
-    def addFunction(self, function: Callable):
-        if function not in self.graphs:
+        self.updateGraphs()
+    
+    def addFunction(self, function: tuple[tuple, Callable]):
+        if function[0] not in self.graphs.keys():
 
             startx = -self.origin.x / self.scale
             endx = (self.width - self.origin.x) / self.scale
-            graph = Graph(function)
-            graph.generate(startx, endx, 10 ** (self.unitLengthMultiplier - 2))
+            graph = Graph(function[1])
 
-            self.graphs[function] = graph
+            if graph.plotable:
+                graph.generate(startx, endx, 10 ** (self.unitLengthMultiplier - 2))
+
+            self.graphs[function[0]] = graph
+
+    def onResize(self, screen: Surface):
+        self.width = screen.width
+        self.height = screen.height
+
+        # update graphs
+        self.updateGraphs()
 
     # Helper Functions
     
@@ -192,6 +184,20 @@ class Grid:
             pg.draw.line(screen, self.minorColor, (centerx + x, 0), (centerx + x, screen.height))
             pg.draw.line(screen, self.minorColor, (centerx - x, 0), (centerx - x, screen.height))
 
+    def drawNum(self, num: float, pos: Point, screen: Surface) -> None:
+        number = round(num, len(str(self.unit)))
+        surf = self.font.render(f"{number}", True, self.axisColor)
+        screen.blit(surf, surf.get_rect(center = pos))
+
+    def changeResolution(self) -> None:
+        if self.displayScale <= 80:
+            self.cycleUnitLength(1)
+            self.regenerateGraphs()
+
+        if self.displayScale >= 160:
+            self.cycleUnitLength(-1)
+            self.regenerateGraphs()
+        
     def cycleUnitLength(self, direction: int) -> None:
         lengths: list = [1, 2, 5]
 
@@ -208,7 +214,23 @@ class Grid:
 
         self.unitLength = lengths[new]
 
-    def drawNum(self, num: float, pos: Point, screen: Surface) -> None:
-        number = round(num, len(str(self.unit)))
-        surf = self.font.render(f"{number}", True, self.axisColor)
-        screen.blit(surf, surf.get_rect(center = pos))
+    def updateGraphs(self):
+        self.origin = Vector2(self.width // 2 + self.panning.x,
+                         self.height // 2 + self.panning.y)
+
+        startx = -self.origin.x / self.scale
+        endx = (self.width - self.origin.x) / self.scale
+
+        for function in self.graphs:
+            self.graphs[function].update(startx, endx, 10 ** (self.unitLengthMultiplier - 2))
+
+    def regenerateGraphs(self):
+        self.origin = Vector2(self.width // 2 + self.panning.x,
+                         self.height // 2 + self.panning.y)
+
+        startx = -self.origin.x / self.scale
+        endx = (self.width - self.origin.x) / self.scale
+
+        for function in self.graphs:
+            self.graphs[function].generate(startx, endx, 10 ** (self.unitLengthMultiplier - 2))
+            

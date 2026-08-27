@@ -111,16 +111,17 @@ class AppState:
         if self.mouseJustPressed[1]:
             self.input.addBox()
 
-        self.input.update(self.keyPressed, self.events, self.dt)
+        self.input.update(self.keyPressed, self.events, self.mousePos, self.dt)
 
         # Plotting
         for function in self.input.functions:
-            if function not in list(self.grid.graphs.keys()):
+            if function[0] not in list(self.grid.graphs.keys()):
                 self.grid.addFunction(function)
 
-        for function in list(self.grid.graphs.keys()):
-            if function not in self.input.functions:
-                self.grid.graphs.pop(function)
+        currentKeys = [f[0] for f in self.input.functions]
+        for key in list(self.grid.graphs.keys()):
+            if key not in currentKeys:
+                self.grid.graphs.pop(key)
 
         # Reset states
         self.mouseScroll = 0
@@ -158,6 +159,7 @@ class AppState:
         self.graphRect: Rect = self.graphWindow.get_rect(topleft = (c.INPUTWINDOWWIDTH, 0))
 
         # parts
+        self.grid.onResize(self.graphWindow)
         self.input.onResize(self.inputWindow)
 
     def quit(self) -> None:

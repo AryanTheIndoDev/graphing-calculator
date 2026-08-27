@@ -5,30 +5,36 @@ from sympy.parsing.sympy_parser import (
     implicit_multiplication_application,
 )
 from tokenize import TokenError
+from sympy.core.sympify import SympifyError
 
 from typing import Callable
 
 transformations = standard_transformations + (implicit_multiplication_application,)
 
-def parseEquation(equation: str, var1: str, var2: str) -> Callable:
+def parseEquation(equation: str, var1: str, var2: str) -> tuple:
     x, y = symbols(f"{var1} {var2}")
 
     try:
+        # split and parse each side
         LHS, RHS = equation.split("=")
         leftExpr = parse_expr(LHS, transformations = transformations)
         rightExpr = parse_expr(RHS, transformations = transformations)
-    
-    except (ValueError, SyntaxError, TokenError):
-        LHS, RHS = ("y", "x")
-        leftExpr = parse_expr(LHS, transformations = transformations)
-        rightExpr = parse_expr(RHS, transformations = transformations)
 
-    parsed = Eq(leftExpr, rightExpr)
+        # equate and solve for y
+        parsed = Eq(leftExpr, rightExpr)
+        expr = solve(parsed, y)
 
-    expr = solve(parsed, y)
-    f = lambdify(x, expr)
+        # turn to python math function
+        f = lambdify(x, expr)
 
-    return f
+        # testing
+        f(0)
+
+    except (ValueError, SyntaxError, NameError, TypeError, TokenError, SympifyError, NotImplementedError):
+        return ((), lambda x: None)
+
+    else:
+        return (tuple(expr), f)
 
 # f = parseEquation(eq, x, y)
 
