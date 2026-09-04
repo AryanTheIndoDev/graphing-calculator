@@ -1,6 +1,7 @@
 import pygame as pg
 from pygame import Surface, Color, Font, Vector2
 from typing import Callable
+from numpy import round
 
 import colors
 import constants as c
@@ -150,7 +151,7 @@ class Grid:
                 # lines
                 pg.draw.line(screen, self.majorColor, (0, centery - y), (screen.width, centery - y))
                 # number
-                self.drawNum(line * self.unit, (centerx - 10, centery - y), screen)
+                self.drawNum(line * self.unit, (centerx - 10, centery - y), screen, "y")
 
         # vertical lines
         xrange = [int(-centerx / self.displayScale), int((screen.width - centerx) / self.displayScale)]
@@ -161,7 +162,7 @@ class Grid:
                 # lines
                 pg.draw.line(screen, self.majorColor, (centerx + x, 0), (centerx + x, screen.height))
                 # number
-                self.drawNum(line * self.unit, (centerx + x, centery + 10), screen)
+                self.drawNum(line * self.unit, (centerx + x, centery + 10), screen, "x")
 
     def drawMinorLines(self, screen: Surface) -> None:
         centerx = self.origin.x
@@ -187,11 +188,17 @@ class Grid:
                 # lines
                 pg.draw.line(screen, self.minorColor, (centerx + x, 0), (centerx + x, screen.height))
 
-    def drawNum(self, num: float, pos: Point, screen: Surface) -> None:
+    def drawNum(self, num: float, pos: Point, screen: Surface, axis: str) -> None:
         number = round(num, len(str(self.unit)))
         surf = self.font.render(f"{number}", True, self.axisColor)
+
         rect = surf.get_rect(center = pos)
 
+        if axis == "x":
+            rect.centery = pg.math.clamp(rect.centery, rect.height / 2, self.height - (rect.height / 2))
+        elif axis == "y":
+            rect.centerx = pg.math.clamp(rect.centerx, rect.width / 2, self.width - (rect.width / 2))
+        
         screen.blit(surf, rect)
 
     def changeResolution(self) -> None:
