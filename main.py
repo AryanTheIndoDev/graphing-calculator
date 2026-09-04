@@ -47,7 +47,7 @@ class AppState:
         # Mouse
         self.mousePos: Vector2 = Vector2(pg.mouse.get_pos())
         self.mouseMovement: Vector2 = Vector2()
-        self.mouseScroll: int = 0
+        self.mouseScroll: float = 0
         
         self.mouseJustPressed: tuple = pg.mouse.get_just_pressed()
         self.mousePressed: tuple = pg.mouse.get_pressed()
@@ -173,7 +173,7 @@ while app.running:
     for event in app.events:
         # mouse scroll
         if event.type == pg.MOUSEWHEEL:
-            app.mouseScroll = event.y
+            app.mouseScroll = pg.math.clamp(event.y, -2, 2)
         # resize
         if event.type == pg.VIDEORESIZE:
             app.onResize(event.size)

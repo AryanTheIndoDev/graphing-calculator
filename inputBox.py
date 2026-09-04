@@ -1,7 +1,6 @@
 import pygame as pg
 from pygame import Rect, Surface, Color, Font, Vector2
 from typing import Callable
-from string import ascii_lowercase
 
 import colors
 import constants as c
@@ -17,7 +16,8 @@ class InputBox:
         # text
         self.text: str = "y = x"
         self.font: Font = font
-        self.color: Color = Color(200, 200, 200)
+        self.color: Color = colors.Grey1
+        self.focusedColor: Color = colors.Grey3
 
         # structure
         self.rect: Rect = Rect()
@@ -46,12 +46,12 @@ class InputBox:
         # inner rectangle
         innerRect = surf.get_rect()
         if self.focused:
-            pg.draw.rect(surf, colors.Grey3, innerRect, 0, 5)
+            pg.draw.rect(surf, self.focusedColor, innerRect, 0, 5)
         else:
-            pg.draw.rect(surf, colors.Grey1, innerRect, 0, 5)
+            pg.draw.rect(surf, self.color, innerRect, 0, 5)
 
         # text
-        textSurf = self.font.render(self.text, True, self.color)
+        textSurf = self.font.render(self.text, True, colors.White)
         textRect = textSurf.get_rect()
 
         textRect.left, textRect.centery = (2 * self.border, innerRect.height // 2)

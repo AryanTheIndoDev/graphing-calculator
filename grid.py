@@ -3,6 +3,7 @@ from pygame import Surface, Color, Font, Vector2
 from typing import Callable
 
 import colors
+import constants as c
 
 from graph import Graph
 
@@ -18,6 +19,7 @@ class Grid:
         unit = unitLength * 10 ^ unitLengthMult"""
 
         self.scale: float = scale
+        self.maxScale: float = c.MAXSCALE
         self.unitLength: float = 2
         self.unitLengthMultiplier: int = 0
 
@@ -70,13 +72,13 @@ class Grid:
         for function in self.graphs.keys():
             graph = self.graphs[function]
             if graph.plotable:
-                sortedPoints = graph.getSortedPoints()
+                sortedChunks = graph.getSortedChunks()
+                for chunk in sortedChunks:
+                    if len(chunk) > 1:
+                        points = [(self.origin.x + x * self.scale, pg.math.clamp(self.origin.y - y * self.scale, -10, self.height + 10)) for x, y in chunk]
+                        pg.draw.lines(screen, colors.Green3, False, points, 3)
 
-                points = [(self.origin.x + x * self.scale, self.origin.y - y * self.scale) for x, y in sortedPoints]
-                
-                pg.draw.lines(screen, colors.Green3, False, points, 3)
-    
-    def zoom(self, scroll: int, intensity: int, mousePos: Vector2, screen: Surface) -> None:
+    def zoom(self, scroll: float, intensity: int, mousePos: Vector2, screen: Surface) -> None:
         """Calcalute the old mathematical coords of mouse,
         calculate the new mathematical coords of the mouse,
         add their difference to panning"""
@@ -90,8 +92,8 @@ class Grid:
         """ Scroll is like the direction
         while the self.scale is scaled by
         a percentage of itself."""
-
-        self.scale += scroll * (self.scale * intensity / 100)
+        deltaScale = scroll * (self.scale * intensity / 100)
+        self.scale = pg.math.clamp(self.scale + deltaScale, self.scale + deltaScale, self.maxScale)
 
         newMathCoords = Vector2((mousePos.x - self.origin.x) / self.scale,
                                 (self.origin.y - mousePos.y) / self.scale)
@@ -140,7 +142,7 @@ class Grid:
 
         # vertical
         for line in range(1, int(max(centery, screen.height - centery) / self.displayScale) + 1):
-            y = line * self.displayScale
+            y = line * self.displayScale 
 
             # positive
             pg.draw.line(screen, self.majorColor, (0, centery - y), (screen.width, centery - y))
@@ -187,7 +189,9 @@ class Grid:
     def drawNum(self, num: float, pos: Point, screen: Surface) -> None:
         number = round(num, len(str(self.unit)))
         surf = self.font.render(f"{number}", True, self.axisColor)
-        screen.blit(surf, surf.get_rect(center = pos))
+        rect = surf.get_rect(center = pos)
+
+        screen.blit(surf, rect)
 
     def changeResolution(self) -> None:
         if self.displayScale <= 80:
@@ -222,7 +226,8 @@ class Grid:
         endx = (self.width - self.origin.x) / self.scale
 
         for function in self.graphs:
-            self.graphs[function].update(startx, endx, 10 ** (self.unitLengthMultiplier - 2))
+            if self.graphs[function].plotable:
+                self.graphs[function].update(startx, endx, 10 ** (self.unitLengthMultiplier - 2))
 
     def regenerateGraphs(self):
         self.origin = Vector2(self.width // 2 + self.panning.x,
@@ -232,5 +237,6 @@ class Grid:
         endx = (self.width - self.origin.x) / self.scale
 
         for function in self.graphs:
-            self.graphs[function].generate(startx, endx, 10 ** (self.unitLengthMultiplier - 2))
+            if self.graphs[function].plotable:
+                self.graphs[function].generate(startx, endx, 10 ** (self.unitLengthMultiplier - 2))
             

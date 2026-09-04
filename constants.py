@@ -5,6 +5,9 @@ STARTINGHEIGHT: int = 600
 INPUTWINDOWWIDTH: int = 300
 ZOOMINTENSITY: int = 5
 
+"""grid.py"""
+MAXSCALE: int = 10 ** 7
+
 """input.py"""
 BOXHEIGHT: int = 100
 HEADERHEIGHT: int = 80

@@ -3,13 +3,12 @@ from sympy.parsing.sympy_parser import (
     parse_expr,
     standard_transformations,
     implicit_multiplication_application,
+    convert_xor,
 )
 from tokenize import TokenError
 from sympy.core.sympify import SympifyError
 
-from typing import Callable
-
-transformations = standard_transformations + (implicit_multiplication_application,)
+transformations = standard_transformations + (implicit_multiplication_application, convert_xor,)
 
 def parseEquation(equation: str, var1: str, var2: str) -> tuple:
     x, y = symbols(f"{var1} {var2}")
@@ -25,14 +24,16 @@ def parseEquation(equation: str, var1: str, var2: str) -> tuple:
         expr = solve(parsed, y)
 
         # turn to python math function
-        f = lambdify(x, expr)
+        f = lambdify(x, expr, 'numpy')
 
         # testing
         f(0)
 
-    except (ValueError, SyntaxError, NameError, TypeError, TokenError, SympifyError, NotImplementedError):
+    except (ValueError, SyntaxError, NameError, TypeError, TokenError, IndexError, SympifyError, NotImplementedError):
         return ((), lambda x: None)
 
+    except ZeroDivisionError:
+        return (tuple(expr), f)
     else:
         return (tuple(expr), f)
 

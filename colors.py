@@ -30,6 +30,7 @@ Grey6 = Color(110, 110, 110, 255)
 Grey7 = Color(130, 130, 130, 255)
 Grey8 = Color(150, 150, 150, 255)
 Grey9 = Color(170, 170, 170, 255)
+Grey10 = Color(190, 190, 190, 255)
 
 Green1 = Color(40, 96, 77, 255)
 Green2 = Color(55, 124, 65, 255)
