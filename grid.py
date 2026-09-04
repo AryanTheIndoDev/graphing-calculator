@@ -137,54 +137,55 @@ class Grid:
     # Helper Functions
     
     def drawMajorLines(self, screen: Surface) -> None:
-        centerx = screen.width // 2 + self.panning.x
-        centery = screen.height // 2 + self.panning.y
+        centerx = self.origin.x
+        centery = self.origin.y
 
-        # vertical
-        for line in range(1, int(max(centery, screen.height - centery) / self.displayScale) + 1):
-            y = line * self.displayScale 
+        # horizontal lines
+        yrange = [int(centery / self.displayScale), int((centery - screen.height) / self.displayScale)]
 
-            # positive
-            pg.draw.line(screen, self.majorColor, (0, centery - y), (screen.width, centery - y))
-            # number
-            self.drawNum(line * self.unit, (centerx - 10, centery - y), screen)
+        for line in range(yrange[1], yrange[0] + 1):
+            if line != 0:
+                y = line * self.displayScale
 
-            # negative
-            pg.draw.line(screen, self.majorColor, (0, centery + y), (screen.width, centery + y))
-            # number
-            self.drawNum(-line * self.unit, (centerx - 10, centery + y), screen)
+                # lines
+                pg.draw.line(screen, self.majorColor, (0, centery - y), (screen.width, centery - y))
+                # number
+                self.drawNum(line * self.unit, (centerx - 10, centery - y), screen)
 
-        # horizontal
-        for line in range(1, int(max(centerx, screen.width - centerx) / self.displayScale) + 1):
-            x = line * self.displayScale
+        # vertical lines
+        xrange = [int(-centerx / self.displayScale), int((screen.width - centerx) / self.displayScale)]
+        for line in range(xrange[0], xrange[1] + 1):
+            if line != 0:
+                x = line * self.displayScale
 
-            # positive
-            pg.draw.line(screen, self.majorColor, (centerx + x, 0), (centerx + x, screen.height))
-            # number
-            self.drawNum(line * self.unit, (centerx + x, centery + 10), screen)
-
-            # negative
-            pg.draw.line(screen, self.majorColor, (centerx - x, 0), (centerx - x, screen.height))
-            # number
-            self.drawNum(-line * self.unit, (centerx - x, centery + 10), screen)
+                # lines
+                pg.draw.line(screen, self.majorColor, (centerx + x, 0), (centerx + x, screen.height))
+                # number
+                self.drawNum(line * self.unit, (centerx + x, centery + 10), screen)
 
     def drawMinorLines(self, screen: Surface) -> None:
-        centerx = screen.width // 2 + self.panning.x
-        centery = screen.height // 2 + self.panning.y
+        centerx = self.origin.x
+        centery = self.origin.y
 
-        # vertical
-        for line in range(1, int(max(centery, screen.height - centery) / (self.displayScale / 5)) + 1):
-            y = line * self.displayScale / 5
+        minorScale = self.displayScale / 5
 
-            pg.draw.line(screen, self.minorColor, (0, centery + y), (screen.width, centery + y))
-            pg.draw.line(screen, self.minorColor, (0, centery - y), (screen.width, centery - y))
+        # horizontal lines
+        yrange = [int(centery / minorScale), int((centery - screen.height) / minorScale)]
+        for line in range(yrange[1], yrange[0] + 1):
+            if line != 0:
+                y = line * minorScale
 
-        # horizontal
-        for line in range(1, int(max(centerx, screen.width - centerx) / (self.displayScale / 5)) + 1):
-            x = line * self.displayScale / 5
+                # lines
+                pg.draw.line(screen, self.minorColor, (0, centery - y), (screen.width, centery - y))
 
-            pg.draw.line(screen, self.minorColor, (centerx + x, 0), (centerx + x, screen.height))
-            pg.draw.line(screen, self.minorColor, (centerx - x, 0), (centerx - x, screen.height))
+        # vertical lines
+        xrange = [int(-centerx / minorScale), int((screen.width - centerx) / minorScale)]
+        for line in range(xrange[0], xrange[1] + 1):
+            if line != 0:
+                x = line * minorScale
+
+                # lines
+                pg.draw.line(screen, self.minorColor, (centerx + x, 0), (centerx + x, screen.height))
 
     def drawNum(self, num: float, pos: Point, screen: Surface) -> None:
         number = round(num, len(str(self.unit)))
