@@ -1,7 +1,9 @@
+import math
+
 import pygame as pg
 from pygame import Surface, Color, Font, Vector2
 from typing import Callable
-from numpy import round
+import numpy as np
 
 import colors
 import constants as c
@@ -33,6 +35,7 @@ class Grid:
 
         # Graphs
         self.graphs: dict[tuple, Graph] = {}
+        self.lineWidth: int = c.UNFOCUSEDLINEWIDTH
 
         # Colors
         self.axisColor: Color = colors.White
@@ -65,9 +68,11 @@ class Grid:
 
         # Axes:-
         # x-axis
-        pg.draw.line(screen, self.axisColor, (0, self.origin.y), (self.width, self.origin.y), 2)
+        if 0 <= self.origin.y <= self.height:
+            pg.draw.line(screen, self.axisColor, (0, self.origin.y), (self.width, self.origin.y), 2)
         # y-axis
-        pg.draw.line(screen, self.axisColor, (self.origin.x, 0), (self.origin.x, self.height), 2)
+        if 0 <= self.origin.x <= self.width:
+            pg.draw.line(screen, self.axisColor, (self.origin.x, 0), (self.origin.x, self.height), 2)
 
         # Graphs:-
         for function in self.graphs.keys():
@@ -76,8 +81,15 @@ class Grid:
                 sortedChunks = graph.getSortedChunks()
                 for chunk in sortedChunks:
                     if len(chunk) > 1:
-                        points = [(self.origin.x + x * self.scale, pg.math.clamp(self.origin.y - y * self.scale, -10, self.height + 10)) for x, y in chunk]
-                        pg.draw.lines(screen, colors.Green3, False, points, 3)
+                        # converting to np arrays 
+                        xs, ys = map(np.array, zip(*chunk))
+
+                        # converting to screen coords
+                        xs = self.origin.x + xs * self.scale
+                        ys = np.clip(self.origin.y - ys * self.scale, -self.lineWidth, self.height + self.lineWidth)
+
+                        # drawing the lines
+                        pg.draw.lines(screen, colors.Green3, False, list(zip(xs.tolist(), ys.tolist())), self.lineWidth)
 
     def zoom(self, scroll: float, intensity: int, mousePos: Vector2, screen: Surface) -> None:
         """Calcalute the old mathematical coords of mouse,
@@ -135,6 +147,14 @@ class Grid:
         # update graphs
         self.updateGraphs()
 
+    def focusOn(self):
+        self.focused: bool = True
+        self.lineWidth: int = c.FOCUSEDLINEWIDTH
+
+    def focusOff(self):
+        self.focused: bool = False
+        self.lineWidth: int = c.UNFOCUSEDLINEWIDTH
+
     # Helper Functions
     
     def drawMajorLines(self, screen: Surface) -> None:
@@ -142,7 +162,7 @@ class Grid:
         centery = self.origin.y
 
         # horizontal lines
-        yrange = [int(centery / self.displayScale), int((centery - screen.height) / self.displayScale)]
+        yrange = [math.floor(centery / self.displayScale), math.ceil((centery - screen.height) / self.displayScale)]
 
         for line in range(yrange[1], yrange[0] + 1):
             if line != 0:
@@ -154,7 +174,7 @@ class Grid:
                 self.drawNum(line * self.unit, (centerx - 10, centery - y), screen, "y")
 
         # vertical lines
-        xrange = [int(-centerx / self.displayScale), int((screen.width - centerx) / self.displayScale)]
+        xrange = [math.floor(-centerx / self.displayScale), math.ceil((screen.width - centerx) / self.displayScale)]
         for line in range(xrange[0], xrange[1] + 1):
             if line != 0:
                 x = line * self.displayScale
@@ -171,7 +191,7 @@ class Grid:
         minorScale = self.displayScale / 5
 
         # horizontal lines
-        yrange = [int(centery / minorScale), int((centery - screen.height) / minorScale)]
+        yrange = [math.floor(centery / minorScale), math.ceil((centery - screen.height) / minorScale)]
         for line in range(yrange[1], yrange[0] + 1):
             if line != 0:
                 y = line * minorScale
@@ -180,7 +200,7 @@ class Grid:
                 pg.draw.line(screen, self.minorColor, (0, centery - y), (screen.width, centery - y))
 
         # vertical lines
-        xrange = [int(-centerx / minorScale), int((screen.width - centerx) / minorScale)]
+        xrange = [math.floor(-centerx / minorScale), math.ceil((screen.width - centerx) / minorScale)]
         for line in range(xrange[0], xrange[1] + 1):
             if line != 0:
                 x = line * minorScale
@@ -189,7 +209,7 @@ class Grid:
                 pg.draw.line(screen, self.minorColor, (centerx + x, 0), (centerx + x, screen.height))
 
     def drawNum(self, num: float, pos: Point, screen: Surface, axis: str) -> None:
-        number = round(num, len(str(self.unit)))
+        number = np.round(num, len(str(self.unit)))
         surf = self.font.render(f"{number}", True, self.axisColor)
 
         rect = surf.get_rect(center = pos)
@@ -202,11 +222,11 @@ class Grid:
         screen.blit(surf, rect)
 
     def changeResolution(self) -> None:
-        if self.displayScale <= 80:
+        if self.displayScale <= c.MINIMUMDISPLAYSCALE:
             self.cycleUnitLength(1)
             self.regenerateGraphs()
 
-        if self.displayScale >= 160:
+        if self.displayScale >= c.MAXIMUMDISPLAYSCALE:
             self.cycleUnitLength(-1)
             self.regenerateGraphs()
         

@@ -1,5 +1,6 @@
 import pygame as pg
 import numpy as np
+from decimal import Decimal
 
 from typing import Callable
 
@@ -103,6 +104,8 @@ class Graph:
 
             # removing the problematic first points
             chunks = [chunk[1:] if i != 0 else chunk for i, chunk in enumerate(chunks)]
+            chunks = [chunk[:-1] if i != len(chunks) - 1 else chunk for i, chunk in enumerate(chunks)]
+
 
             self._sortedCache = chunks
             self._dirty = False
@@ -132,9 +135,6 @@ class Graph:
         else:
             return False
 
-    def getDecimalPlaces(self, val: float) -> int:
-        num = str(val)
-        if "." not in num:
-            return 0
-        else:
-            return len(num.split(".")[1])
+    def getDecimalPlaces(self, val: float):
+        decimalVal = Decimal(str(val))
+        return np.abs(decimalVal.as_tuple().exponent)

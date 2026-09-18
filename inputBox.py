@@ -6,6 +6,7 @@ import colors
 import constants as c
 
 from parser import parseEquation
+from textInput import TextInput
 
 # Type Declaration
 type Point = tuple[int, int]
@@ -14,7 +15,7 @@ type Point = tuple[int, int]
 class InputBox:
     def __init__(self, font: Font) -> None:
         # text
-        self.text: str = "y = x"
+        self.textInput: TextInput = TextInput("")
         self.font: Font = font
         self.color: Color = colors.Grey1
         self.focusedColor: Color = colors.Grey3
@@ -51,7 +52,7 @@ class InputBox:
             pg.draw.rect(surf, self.color, innerRect, 0, 5)
 
         # text
-        textSurf = self.font.render(self.text, True, colors.White)
+        textSurf = self.font.render(self.textInput.getText(), True, colors.White)
         textRect = textSurf.get_rect()
 
         textRect.left, textRect.centery = (2 * self.border, innerRect.height // 2)
@@ -65,16 +66,16 @@ class InputBox:
         # Text Input
         for event in events:
             if event.type == pg.TEXTINPUT:
-                self.text += event.text
+                self.textInput.update(event.text)
 
         # Backspace
         self.handleBackspace(keyPresses, dt)
 
     def getEquation(self) -> tuple[tuple, Callable]:
-        if self.text != self._lastparsedtext:
-            self._lastparsedtext = self.text
+        if self.textInput.getText() != self._lastparsedtext:
+            self._lastparsedtext = self.textInput.getText()
 
-            self._cachedFunc = parseEquation(self.text.replace(" ", ""), "x", "y")
+            self._cachedFunc = parseEquation(self.textInput.text.replace(" ", ""), "x", "y")
 
         return self._cachedFunc
 
@@ -92,15 +93,15 @@ class InputBox:
         if keyPresses[pg.K_BACKSPACE]:
             # initial back
             if not self.backspaceMode and self.backspaceTime == 0:
-                self.text = self.text[0:-1]
+                self.textInput.backspace()
             # in between timer
             elif not self.backspaceMode and self.backspaceTime >= c.BACKSPACESTARTTIMER:
-                self.text = self.text[0:-1]
+                self.textInput.backspace()
                 self.backspaceMode = True
                 self.backspaceTime -= c.BACKSPACESTARTTIMER
             # backspace mode go brrrr
             elif self.backspaceMode and self.backspaceTime >= c.BACKSPACEBETWEENTIMER:
-                self.text = self.text[0:-1]
+                self.textInput.backspace()
                 self.backspaceTime -= c.BACKSPACEBETWEENTIMER
             # timer increment
             self.backspaceTime += dt

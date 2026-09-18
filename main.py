@@ -69,6 +69,12 @@ class AppState:
         self.fps: float = 60
         self.dt: float = 0
 
+        # test: fps each second
+        self.fpsCounter: int = 0
+        self.timer: float = 0
+
+        self.testFps: int = 60
+
     @property
     def width(self) -> int:
         return self.screen.width
@@ -107,6 +113,13 @@ class AppState:
 
                 self.grid.zoom(self.mouseScroll, zoom, relMousePos, self.graphWindow)
 
+        # Grid Focus
+        if self.mousePressed[0]:
+            if self.graphRect.collidepoint(self.mousePos):
+                self.grid.focusOn()
+            else:
+                self.grid.focusOff()
+
         # Input Features
         if self.mouseJustPressed[1]:
             self.input.addBox()
@@ -125,6 +138,14 @@ class AppState:
 
         # Reset states
         self.mouseScroll = 0
+
+        # calculating fps
+        self.timer += self.dt
+        self.fpsCounter += 1
+        if self.timer >= 1:
+            self.testFps = self.fpsCounter
+            self.timer = 0
+            self.fpsCounter = 0
         
     def draw(self) -> None:
         # Resetting surfaces
@@ -139,6 +160,8 @@ class AppState:
         # Screen
         self.screen.blit(self.inputWindow, self.inputRect)
         self.screen.blit(self.graphWindow, self.graphRect)
+
+        self.screen.blit(pg.font.SysFont("Cambria Math", 25).render(f"{self.testFps}", True, colors.White), (self.width - 40, 0))
 
     def onResize(self, new_dimensions: Point) -> None:
         newWidth, newHeight = new_dimensions
