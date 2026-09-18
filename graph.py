@@ -16,7 +16,7 @@ class Graph:
         self.function: Callable = function
 
         # points
-        self.points: dict[float, float] = {}
+        self.points: list[dict[float, float]] = []
 
         self._sortedCache: list = []
         self._dirty: bool = True
@@ -32,15 +32,17 @@ class Graph:
 
     def generate(self, startx: float, endx: float, step: float) -> None:
         # reset points
-        self.points = {}
+        self.points = []
 
         # solve for all
         xs = np.arange(startx, endx + step, step)
         xs = np.round(xs, self.getDecimalPlaces(step))
-        ys = self.solve(xs)
+        chains = self.solve(xs)
 
         # assign points
-        self.points = dict(zip(xs.tolist(), ys.tolist()))
+        # self.points = dict(zip(xs.tolist(), ys.tolist()))
+        for ys in chains:
+            self.points.append(dict(zip(xs.tolist(), ys.tolist())))
 
         # setting the values
         self.startx = startx
@@ -66,17 +68,20 @@ class Graph:
         if sIncrement > 0:
             xs = np.arange(s2, s1 + step, step)
             xs = np.round(xs, self.getDecimalPlaces(step))
-            ys = self.solve(xs)
-            self.points.update(dict(zip(xs.tolist(), ys.tolist())))
+            chains = self.solve(xs)
+            for index in range(len(self.points)):
+                self.points[index].update(dict(zip(xs.tolist(), chains[index].tolist())))
 
         # end side
         if eIncrement > 0:
             xs = np.arange(e1, e2 + step, step)
             xs = np.round(xs, self.getDecimalPlaces(step))
-            ys = self.solve(xs)
-            self.points.update(dict(zip(xs.tolist(), ys.tolist())))
-        
-        self.points = {x: y for x, y in self.points.items() if s2 <= x <= e2}
+            chains = self.solve(xs)
+            for index in range(len(self.points)):
+                self.points[index].update(dict(zip(xs.tolist(), chains[index].tolist())))
+
+        for chain in self.points:
+            chain = {x: y for x, y in chain.items() if s2 <= x <= e2}
 
         # setting the values
         self.startx = s2
@@ -86,40 +91,42 @@ class Graph:
         # setting self to dirty
         self._dirty = True
 
-    def getSortedChunks(self) -> list[list[tuple[float, float]]]:
+    def getSortedChains(self) -> list[list[list[tuple[float, float]]]]:
         if self._dirty:
-            sortedPoints = sorted(self.points.items())
+            self._sortedCache = []
+            for chain in self.points:
+                sortedPoints = sorted(chain.items())
 
-            # splitting the dict
-            indices = []
-            for i in range(1, len(sortedPoints) - 1):
-                curPoint = sortedPoints[i]
-                previousPoint = sortedPoints[i - 1]
+                # splitting the dict
+                indices = []
+                for i in range(1, len(sortedPoints) - 1):
+                    curPoint = sortedPoints[i]
+                    previousPoint = sortedPoints[i - 1]
 
-                if self.checkAsymptote(curPoint[1], previousPoint[1]):
-                    indices += [i]
+                    if self.checkAsymptote(curPoint[1], previousPoint[1]):
+                        indices += [i]
 
-            indices = [0] + indices + [len(sortedPoints) - 1]
-            chunks = [sortedPoints[indices[i]: indices[i+1]] for i in range(len(indices) - 1)]
+                indices = [0] + indices + [len(sortedPoints) - 1]
+                chunks = [sortedPoints[indices[i]: indices[i+1]] for i in range(len(indices) - 1)]
 
-            # removing the problematic first points
-            chunks = [chunk[1:] if i != 0 else chunk for i, chunk in enumerate(chunks)]
-            chunks = [chunk[:-1] if i != len(chunks) - 1 else chunk for i, chunk in enumerate(chunks)]
+                # removing the problematic first points
+                chunks = [chunk[1:] if i != 0 else chunk for i, chunk in enumerate(chunks)]
 
+                self._sortedCache.append(chunks)
 
-            self._sortedCache = chunks
             self._dirty = False
 
         return self._sortedCache
 
     # Helper Functions
     def solve(self, xs):
-        ys = self.function(xs)[0]
+        chains = self.function(xs)
 
-        if np.isscalar(ys):
-            ys = np.repeat(ys, len(xs))
+        for index in range(len(chains)):
+            if np.isscalar(chains[index]):
+                chains[index] = np.repeat(chains[index], len(xs))
 
-        return ys
+        return chains
 
     def checkReal(self, val: float) -> bool:
         if np.isnan(val) or np.isinf(val):

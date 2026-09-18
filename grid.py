@@ -78,18 +78,20 @@ class Grid:
         for function in self.graphs.keys():
             graph = self.graphs[function]
             if graph.plotable:
-                sortedChunks = graph.getSortedChunks()
-                for chunk in sortedChunks:
-                    if len(chunk) > 1:
-                        # converting to np arrays 
-                        xs, ys = map(np.array, zip(*chunk))
+                sortedChains = graph.getSortedChains()
+                for chain in sortedChains:
+                    for chunk in chain:
+                        if len(chunk) > 1:
+                            # converting to np arrays 
+                            xs, ys = map(np.array, zip(*chunk))
 
-                        # converting to screen coords
-                        xs = self.origin.x + xs * self.scale
-                        ys = np.clip(self.origin.y - ys * self.scale, -self.lineWidth, self.height + self.lineWidth)
+                            # converting to screen coords
+                            xs = self.origin.x + xs * self.scale
+                            ys = np.clip(self.origin.y - ys * self.scale, -self.lineWidth, self.height + self.lineWidth)
+                            # print(ys)
 
-                        # drawing the lines
-                        pg.draw.lines(screen, colors.Green3, False, list(zip(xs.tolist(), ys.tolist())), self.lineWidth)
+                            # drawing the lines
+                            pg.draw.lines(screen, colors.Green3, False, list(zip(xs.tolist(), ys.tolist())), self.lineWidth)
 
     def zoom(self, scroll: float, intensity: int, mousePos: Vector2, screen: Surface) -> None:
         """Calcalute the old mathematical coords of mouse,
