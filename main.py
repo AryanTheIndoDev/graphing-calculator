@@ -69,7 +69,7 @@ class AppState:
         self.fps: float = 60
         self.dt: float = 0
 
-        # test: fps each second
+        # Debugging: FPS monitoring
         self.fpsCounter: int = 0
         self.timer: float = 0
 
@@ -121,9 +121,6 @@ class AppState:
                 self.grid.focusOff()
 
         # Input Features
-        if self.mouseJustPressed[1]:
-            self.input.addBox()
-
         self.input.update(self.keyPressed, self.events, self.mousePos, self.dt)
 
         # Plotting
@@ -139,7 +136,7 @@ class AppState:
         # Reset states
         self.mouseScroll = 0
 
-        # calculating fps
+        # Debugging : Calculating FPS
         self.timer += self.dt
         self.fpsCounter += 1
         if self.timer >= 1:
@@ -161,6 +158,7 @@ class AppState:
         self.screen.blit(self.inputWindow, self.inputRect)
         self.screen.blit(self.graphWindow, self.graphRect)
 
+        # Debugging: FPS on screen
         self.screen.blit(pg.font.SysFont("Cambria Math", 25).render(f"{self.testFps}", True, colors.White), (self.width - 40, 0))
 
     def onResize(self, new_dimensions: Point) -> None:

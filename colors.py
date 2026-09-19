@@ -33,7 +33,7 @@ Grey9 = Color(170, 170, 170, 255)
 Grey10 = Color(190, 190, 190, 255)
 
 Green1 = Color(40, 96, 77, 255)
-Green2 = Color(55, 124, 65, 255)
+Green2 = Color(63, 85, 70, 255)
 Green3 = Color(0, 182, 63, 255)
 Green4 = Color(0, 209, 72, 255)
 

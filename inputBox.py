@@ -49,7 +49,7 @@ class InputBox:
         if self.focused:
             pg.draw.rect(surf, self.focusedColor, innerRect, 0, 5)
         else:
-            pg.draw.rect(surf, self.color, innerRect, 0, 5)
+            pg.draw.rect(surf, self.color, innerRect, )
 
         # text
         textSurf = self.font.render(self.textInput.getText(), True, colors.White)

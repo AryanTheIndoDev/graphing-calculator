@@ -80,8 +80,8 @@ class Graph:
             for index in range(len(self.points)):
                 self.points[index].update(dict(zip(xs.tolist(), chains[index].tolist())))
 
-        for chain in self.points:
-            chain = {x: y for x, y in chain.items() if s2 <= x <= e2}
+        for index in range(len(self.points)):
+            self.points[index] = {x: y for x, y in self.points[index].items() if s2 <= x <= e2}
 
         # setting the values
         self.startx = s2
