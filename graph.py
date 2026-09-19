@@ -82,6 +82,7 @@ class Graph:
 
         for index in range(len(self.points)):
             self.points[index] = {x: y for x, y in self.points[index].items() if s2 <= x <= e2}
+            print(len(self.points[index]))
 
         # setting the values
         self.startx = s2

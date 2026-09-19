@@ -138,7 +138,7 @@ class Grid:
             graph = Graph(function[1])
 
             if graph.plotable:
-                graph.generate(startx, endx, 10 ** (self.unitLengthMultiplier - 2))
+                graph.generate(startx, endx, (endx - startx) / self.width)
 
             self.graphs[function[0]] = graph
 
@@ -257,7 +257,7 @@ class Grid:
 
         for function in self.graphs:
             if self.graphs[function].plotable:
-                self.graphs[function].update(startx, endx, 10 ** (self.unitLengthMultiplier - 2))
+                self.graphs[function].update(startx, endx, (endx - startx) / self.width)
 
     def regenerateGraphs(self):
         self.origin = Vector2(self.width // 2 + self.panning.x,
@@ -268,5 +268,5 @@ class Grid:
 
         for function in self.graphs:
             if self.graphs[function].plotable:
-                self.graphs[function].generate(startx, endx, 10 ** (self.unitLengthMultiplier - 2))
+                self.graphs[function].generate(startx, endx, (endx - startx) / self.width)
             
